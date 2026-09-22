@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "BingX Header Remover",
+  "version": "1.0",
+  "description": "Removes the main navigation header on BingX.",
+  "permissions": [
+    "clipboardRead"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.bingx.pro/*",
+        "*://*.bingx.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ]
+}
