@@ -9,7 +9,11 @@ const targetSelectors = [
     'div.estimate-info',
     'div.max-slippage',
     'div.vip-level-wrap.align-center',
-    'div.info-line'
+    'div.info-line',
+    'div.order-panel-tabs',
+    'div.account-header',
+    'ul#swap-trade-tabs',
+    'div.ice-slider'
 ].join(', ');
 
 function removeElements() {
