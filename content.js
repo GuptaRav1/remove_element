@@ -2,8 +2,8 @@
 // 1. UI CLEANER FUNCTIONALITY
 // ==========================================
 const targetSelectors = [
-    'header.bx-navigation', 
-    'div.scroll-wrapper', 
+    'header.bx-navigation',
+    'div.scroll-wrapper',
     'div.trade-footer-banner',
     'div.account-info-wrapper',
     'div.estimate-info',
@@ -51,21 +51,21 @@ async function pollClipboardForStopPrice() {
 
     try {
         const clipboardText = await navigator.clipboard.readText();
-        
+
         // Proceed only if the clipboard contains new content
         if (clipboardText && clipboardText !== lastClipboardText) {
             const cleanedNumber = clipboardText.replace(/,/g, '').trim();
-            
+
             // Validate if the new clipboard text is a usable number
             if (!isNaN(cleanedNumber) && cleanedNumber !== '') {
                 lastClipboardText = clipboardText; // Update cache to prevent continuous firing
-                
+
                 // Locate the Stop Loss input (assuming it is the second .sltp-wrapper)
                 const sltpWrappers = document.querySelectorAll('.sltp-wrapper');
                 if (sltpWrappers.length >= 2) {
-                    const slWrap = sltpWrappers[1]; 
+                    const slWrap = sltpWrappers[1];
                     const slInput = slWrap.querySelector('input.tl-input-inner');
-                    
+
                     if (slInput && slInput.value !== cleanedNumber) {
                         slInput.value = cleanedNumber;
                         slInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -99,7 +99,7 @@ function injectRiskUI() {
 
     const uiContainer = document.createElement('div');
     uiContainer.id = 'custom-risk-ui';
-    
+
     // CSS adjusted to match the dark theme and fit nicely at the bottom
     uiContainer.style.cssText = `
         background: #14151a;
@@ -151,22 +151,22 @@ setInterval(injectRiskUI, 1000);
 function getDynamicRiskUSD() {
     // Read Initial Balance X
     const storedX = parseFloat(localStorage.getItem('bingx_initial_balance') || '100');
-    
+
     // Scrape Current Balance from BingX UI
     const balanceElement = document.querySelector('.op-asset-content .text-tip');
     if (!balanceElement) return null; // Wait until UI loads
-    
+
     const currentBalance = parseFloat(balanceElement.innerText.replace(/,/g, ''));
     if (isNaN(currentBalance)) return null;
 
     // Calculate Gain vs X
     const gainPercentage = ((currentBalance - storedX) / storedX) * 100;
-    
+
     // Determine Risk Percentage Slab
     // Math.floor(gain / 10) + 1 brackets gains by 10s continuously
     // Math.max(1, ...) sets the absolute floor at 1% for drawdowns (< 0% gain)
     const riskPercentage = Math.max(1, Math.floor(gainPercentage / 10) + 1);
-    
+
     // Calculate final risk dollar amount (calculated against static X)
     const riskUSD = storedX * (riskPercentage / 100);
 
@@ -198,16 +198,16 @@ function calculateDynamicAmount() {
 
     // 3. Retrieve the Stop Loss Price securely
     const sltpWrappers = document.querySelectorAll('.sltp-wrapper');
-    if (sltpWrappers.length < 2) return; 
-    
-    const slWrap = sltpWrappers[1]; 
+    if (sltpWrappers.length < 2) return;
+
+    const slWrap = sltpWrappers[1];
     const slInputs = slWrap.querySelectorAll('input.tl-input-inner');
-    
+
     let slPrice = NaN;
     for (const input of slInputs) {
         if (input.value) {
             slPrice = parseFloat(input.value.replace(/,/g, ''));
-            if (!isNaN(slPrice)) break; 
+            if (!isNaN(slPrice)) break;
         }
     }
 
@@ -215,7 +215,7 @@ function calculateDynamicAmount() {
 
     // 4. Retrieve the Current Market Price from the document title
     const titleMatch = document.title.match(/\$?([\d,]+(?:\.\d+)?)/);
-    if (!titleMatch) return; 
+    if (!titleMatch) return;
     const currentPrice = parseFloat(titleMatch[1].replace(/,/g, ''));
 
     // 5. Validate numbers to prevent NaN errors or division by zero
@@ -226,7 +226,7 @@ function calculateDynamicAmount() {
     const rawAmount = dynamicRiskUSD / priceDifference;
 
     // 7. Format the amount to appropriate decimal places
-    let finalAmount = rawAmount.toFixed(4); 
+    let finalAmount = rawAmount.toFixed(4);
     finalAmount = parseFloat(finalAmount).toString();
 
     // 8. Inject the calculated amount into the UI if it has changed
@@ -234,6 +234,14 @@ function calculateDynamicAmount() {
         amountInput.value = finalAmount;
         amountInput.dispatchEvent(new Event('input', { bubbles: true }));
         amountInput.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    // 9. Also fill the secondary trade input (.trade-input.dynamic-txt.number)
+    const tradeInput = document.querySelector('input.trade-input.dynamic-txt.number');
+    if (tradeInput && tradeInput.value !== finalAmount) {
+        tradeInput.value = finalAmount;
+        tradeInput.dispatchEvent(new Event('input', { bubbles: true }));
+        tradeInput.dispatchEvent(new Event('change', { bubbles: true }));
     }
 }
 
